@@ -1,0 +1,14 @@
+# #!/bin/sh
+
+# Set the ulimit for open files
+ulimit -n 1048576
+
+# Start chrony service
+service chronyd start
+
+./bin/yugabyted start --background=false \
+  --advertise_address="${FLY_MACHINE_ID}.vm.yuga-cluster.internal" \
+  --base_dir=/data \
+  --fault_tolerance="region" \
+  --callhome=false \
+  --cloud_location="fly.${FLY_REGION}.${FLY_REGION}"

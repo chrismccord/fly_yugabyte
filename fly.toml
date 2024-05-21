@@ -1,0 +1,9 @@
+app = "yuga-cluster"
+primary_region = "iad"
+
+kill_signal = "SIGTERM"
+kill_timeout = 20
+
+[mount]
+source="yuga_data"
+destination="/data"

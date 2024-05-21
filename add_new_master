@@ -1,0 +1,7 @@
+./bin/yugabyted start --background=false \
+  --advertise_address="${FLY_MACHINE_ID}.vm.${FLY_APP_NAME}.internal" \
+  --base_dir=/data \
+  --fault_tolerance="region" \
+  --callhome=false \
+  --cloud_location="fly.${FLY_REGION}.${FLY_REGION}" \
+  --join="${PRIMARY_REGION}.${FLY_APP_NAME}.internal"
