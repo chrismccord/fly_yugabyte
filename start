@@ -3,12 +3,26 @@
 # Set the ulimit for open files
 ulimit -n 1048576
 
-# Start chrony service
-service chronyd start
+# Set transparent_hugepage to always
+echo always > /sys/kernel/mm/transparent_hugepage/enabled
 
-./bin/yugabyted start --background=false \
-  --advertise_address="${FLY_MACHINE_ID}.vm.yuga-cluster.internal" \
-  --base_dir=/data \
-  --fault_tolerance="region" \
+# Initialize the command with common options
+
+command="./bin/yugabyted start --background=false \
+  --advertise_address=\"${FLY_MACHINE_ID}.vm.${FLY_APP_NAME}.internal\" \
+  --base_dir=$YB_BASE_DIR \
+  --fault_tolerance=\"region\" \
   --callhome=false \
-  --cloud_location="fly.${FLY_REGION}.${FLY_REGION}"
+  --cloud_location=\"fly.${FLY_REGION}.${FLY_REGION}\" \
+  --master_flags=\"raft_heartbeat_interval_ms=300,max_clock_skew_usec=300000,leader_lease_duration_ms=1000\" \
+  --tserver_flags=\"ysql_catalog_preload_additional_tables=true,raft_heartbeat_interval_ms=300,max_clock_skew_usec=300000,leader_lease_duration_ms=1000\" \
+"
+
+# join new member to the existing cluster
+# Note: primary is started first on initial setup, and there is nothing to join
+if [ "$PRIMARY_REGION" != "$FLY_REGION" ] && [ ! -d "$YB_BASE_DIR/conf" ]; then
+  command="$command --join=\"${PRIMARY_REGION}.${FLY_APP_NAME}.internal\""
+fi
+
+# Execute the command
+eval $command

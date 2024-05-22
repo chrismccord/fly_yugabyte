@@ -1,9 +1,13 @@
-app = "yuga-cluster"
+app = "ybx"
 primary_region = "iad"
 
 kill_signal = "SIGTERM"
 kill_timeout = 20
 
+[env]
+  YB_BASE_DIR="/yb_data"
+  RF="8"
+
 [mount]
-source="yuga_data"
-destination="/data"
+source="yb_data"
+destination="/yb_data"
