@@ -9,11 +9,18 @@ to provision and scale your cluster in multiple regions.
 
 For example, to create a 3 region cluster in `iad`, `ord`, and `lax`:
 
-    ./init_cluster --region iad,ord,lax -a my-yuga
+    $ ./init_cluster --region iad,ord,lax -a my-yuga
 
 After the cluster is up, you can configure the data placement, for example:
 
-    fly ssh console -C "./bin/yugabyted configure data_placement --fault_tolerance=region --rf=3"
+    ️$ fly ssh console -C "./bin/yugabyted configure data_placement --base_dir=/yb_data --fault_tolerance=region --rf=3"
+
+    +--------------------------------------------------------------------------------------+
+    |                                      yugabyted                                       |
+    +--------------------------------------------------------------------------------------+
+    | Status        : Configuration successful. Primary data placement is geo-redundant.   |
+    | Fault Tolerance: Primary Cluster can survive at most any 1 region failure.           |
+    +--------------------------------------------------------------------------------------+
 
 Follow the steps in the [Fly private VPN network](https://fly.io/docs/networking/private-networking/#private-network-vpn)
 guide to securely connect from your local computer to your yuga cluster. This will allow you to hit the YugabyteDB management

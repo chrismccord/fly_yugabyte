@@ -93,7 +93,7 @@ fly scale count "$NUM_REGIONS" -y --max-per-region=1 --region "$REGIONS" --vm-si
 
 echo "Cluster has been provisioned! Once the cluster is ready, configure your dataplacement:"
 echo ""
-echo "   fly ssh console -C \"./bin/yugabyted configure data_placement --fault_tolerance=region --rf=$NUM_REGIONS\""
+echo "   fly ssh console -C \"./bin/yugabyted configure data_placement --base_dir=/yb_data --fault_tolerance=region --rf=$NUM_REGIONS\""
 echo ""
 echo "Connect to your cluster: `psql "psql://yugabyte:yugabyte@$PRIMARY_REGION.$APP.internal:15433"`
 echo ""
