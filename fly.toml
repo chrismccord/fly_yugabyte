@@ -6,7 +6,6 @@ kill_timeout = 20
 
 [env]
   YB_BASE_DIR="/yb_data"
-  RF="8"
 
 [mount]
 source="yb_data"

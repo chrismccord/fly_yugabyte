@@ -1,0 +1,8 @@
+# #!/bin/sh
+
+txt_record=$(dig +short TXT vms.${FLY_APP_NAME}.internal)
+txt_record=$(echo "$txt_record" | tr -d '"')
+
+addrs=$(echo "$txt_record" | awk -v app_name="$FLY_APP_NAME" -F, '{ for(i=1;i<=NF;i++) { sub(" .*$", "", $i); $i=$i ".vm." app_name ".internal:7100" } } 1' OFS=,)
+
+echo $addrs

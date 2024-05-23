@@ -1,14 +1,101 @@
-# #!/bin/sh
+#!/bin/bash
 
-# Set the ulimit for open files
-ulimit -n 1048576
+REGIONS=""
+SIZE=1
+APP=""
 
-# Set transparent_hugepage to always
-echo always > /sys/kernel/mm/transparent_hugepage/enabled
+# Parse args
+while [[ $# -gt 0 ]]
+do
+  key="$1"
+  case $key in
+    --region=*)
+      REGIONS="${key#*=}"
+      shift
+      ;;
+    --region)
+      REGIONS="$2"
+      shift
+      shift
+      ;;
+    --size=*)
+      SIZE="${key#*=}"
+      shift
+      ;;
+    --size)
+      SIZE="$2"
+      shift
+      shift
+      ;;
+    -a=*)
+      APP="${key#*=}"
+      shift
+      ;;
+    -a)
+      APP="$2"
+      shift
+      shift
+      ;;
+    *)
+      # unknown option
+      shift
+      ;;
+  esac
+done
 
-./bin/yugabyted start --background=false \
-  --advertise_address="${FLY_MACHINE_ID}.vm.${FLY_APP_NAME}.internal" \
-  --base_dir=$YB_BASE_DIR \
-  --fault_tolerance="region" \
-  --callhome=false \
-  --cloud_location="fly.${FLY_REGION}.${FLY_REGION}"
+echo "Regions: $REGIONS"
+echo "Size: $SIZE"
+echo "App: $APP"
+
+if [ -z "$REGIONS" ]; then
+  echo "Error: --region argument is required."
+  exit 1
+fi
+
+if [ -z "$APP" ]; then
+  echo "Error: -a argument is required."
+  exit 1
+fi
+
+IFS=',' read -r -a REGION_ARRAY <<< "$REGIONS"
+
+# Primary region is the first one passed
+PRIMARY_REGION=${REGION_ARRAY[0]}
+
+echo "Primary Region: $PRIMARY_REGION"
+echo "Regions Array: ${REGION_ARRAY[@]}"
+
+# Concurrently create fly volums for each region
+for CUR_REGION in "${REGION_ARRAY[@]}"
+do
+  echo "Creating volume in region: $CUR_REGION with size: $SIZE for app: $APP"
+  fly vol create -y yb_data --region "$CUR_REGION" --size "$SIZE" -a "$APP" &
+done
+
+# Wait for all fly vol's to complete
+wait
+
+# Run the fly deploy command using the primary region
+echo "Deploying initial primary in $PRIMARY_REGION"
+fly deploy --regions "$PRIMARY_REGION" -a "$APP" --vm-size performance-2x
+
+# wait for initial master to be healthy
+until fly ssh console -a "$APP" -C "./bin/yugabyted status --base_dir=/yb_data" | grep UUID
+do
+  echo "Waiting for primary YugabyteDB in $PRIMARY_REGION to be ready..."
+  sleep 1
+done
+
+# Run the fly scale command using the regions and the number of regions
+NUM_REGIONS=${#REGION_ARRAY[@]}
+echo "Initial primary is ready! Scaling to $NUM_REGIONS regions"
+fly scale count "$NUM_REGIONS" -y --max-per-region=1 --region "$REGIONS" --vm-size performance-2x -a "$APP"
+
+echo "Cluster has been provisioned! Once the cluster is ready, configure your dataplacement:"
+echo ""
+echo "   fly ssh console -C \"./bin/yugabyted configure data_placement --fault_tolerance=region --rf=$NUM_REGIONS\""
+echo ""
+echo "Connect to your cluster: `psql "psql://yugabyte:yugabyte@$PRIMARY_REGION.$APP.internal:15433"`
+echo ""
+echo "View your cluster status at http://$PRIMARY_REGION.$APP.internal:15433/?tab=tabNodes"
+

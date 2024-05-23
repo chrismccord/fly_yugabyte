@@ -6,12 +6,11 @@ RUN yum update -y && yum install -y chrony
 RUN sed -i 's/\bAF_INET\b/AF_INET6/g' ./bin/yugabyted
 
 ADD start .
-ADD init_cluster .
-ADD join_new_master .
-RUN chmod a+x start init_cluster join_new_master
+ADD fly_master_addrs .
+RUN chmod a+x start
+RUN chmod a+x fly_master_addrs
 
 # Enable and start chrony
 RUN systemctl enable chronyd
 
 ENTRYPOINT ./start
-# ENTRYPOINT sleep infinity

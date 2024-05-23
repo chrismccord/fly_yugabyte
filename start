@@ -12,11 +12,11 @@ command="./bin/yugabyted start --background=false \
   --advertise_address=\"${FLY_MACHINE_ID}.vm.${FLY_APP_NAME}.internal\" \
   --base_dir=$YB_BASE_DIR \
   --fault_tolerance=\"region\" \
+  --ysql_enable_auth=true \
   --callhome=false \
   --cloud_location=\"fly.${FLY_REGION}.${FLY_REGION}\" \
   --master_flags=\"raft_heartbeat_interval_ms=300,max_clock_skew_usec=300000,leader_lease_duration_ms=1000\" \
-  --tserver_flags=\"ysql_catalog_preload_additional_tables=true,raft_heartbeat_interval_ms=300,max_clock_skew_usec=300000,leader_lease_duration_ms=1000\" \
-"
+  --tserver_flags=\"ysql_catalog_preload_additional_tables=true,raft_heartbeat_interval_ms=300,max_clock_skew_usec=300000,leader_lease_duration_ms=1000\""
 
 # join new member to the existing cluster
 # Note: primary is started first on initial setup, and there is nothing to join
@@ -26,3 +26,6 @@ fi
 
 # Execute the command
 eval $command
+
+# Fail the command if we are unable to join the cluster
+exit 1
