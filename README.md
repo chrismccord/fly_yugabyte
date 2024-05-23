@@ -39,3 +39,14 @@ You can change the default password with:
 
     yugabyte=# ALTER ROLE yugabyte PASSWOD 'my-new-password'
 
+## Adding new masters
+
+Assuming you have 3 nodes in regions iad,ord,lax, you can scale to more regions
+by first provisionining a volume in each new region:
+
+    $ fly vol create yb_data --region lhr --size 1 -a ybx
+    $ fly vol create yb_data --region waw --size 1 -a ybx
+
+Then run fly scale to scale up 5 regions:
+
+    $ fly scale count 5 --max-per-region=1 --region iad,ord,lax,lhr,waw --vm-size performance-2x
