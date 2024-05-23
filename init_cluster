@@ -66,9 +66,11 @@ echo "Primary Region: $PRIMARY_REGION"
 echo "Regions Array: ${REGION_ARRAY[@]}"
 
 # Concurrently create fly volums for each region
+echo ""
+echo ">> Creating volumes in regions $REGIONS"
 for CUR_REGION in "${REGION_ARRAY[@]}"
 do
-  echo "Creating volume in region: $CUR_REGION with size: $SIZE for app: $APP"
+  echo ">> Creating volume in region: $CUR_REGION with size: $SIZE for app: $APP"
   fly vol create -y yb_data --region "$CUR_REGION" --size "$SIZE" -a "$APP" &
 done
 
@@ -76,7 +78,8 @@ done
 wait
 
 # Run the fly deploy command using the primary region
-echo "Deploying initial primary in $PRIMARY_REGION"
+echo ""
+echo ">> Deploying initial primary in $PRIMARY_REGION"
 fly deploy --regions "$PRIMARY_REGION" -a "$APP" --vm-size performance-2x
 
 # wait for initial master to be healthy
@@ -88,9 +91,11 @@ done
 
 # Run the fly scale command using the regions and the number of regions
 NUM_REGIONS=${#REGION_ARRAY[@]}
-echo "Initial primary is ready! Scaling to $NUM_REGIONS regions"
+echo ""
+echo ">> Initial primary is ready! Scaling to $NUM_REGIONS regions"
 fly scale count "$NUM_REGIONS" -y --max-per-region=1 --region "$REGIONS" --vm-size performance-2x -a "$APP"
 
+echo ""
 echo "Cluster has been provisioned! Once the cluster is ready, configure your dataplacement:"
 echo ""
 echo "   fly ssh console -C \"./bin/yugabyted configure data_placement --base_dir=/yb_data --fault_tolerance=region --rf=$NUM_REGIONS\""
