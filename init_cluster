@@ -80,7 +80,7 @@ wait
 # Run the fly deploy command using the primary region
 echo ""
 echo ">> Deploying initial primary in $PRIMARY_REGION"
-fly deploy --regions "$PRIMARY_REGION" -a "$APP" --vm-size performance-2x
+fly deploy --regions "$PRIMARY_REGION" -a "$APP" --memory 8192 --vm-size performance-2x
 
 # wait for initial master to be healthy
 until fly ssh console -a "$APP" -C "./bin/yugabyted status --base_dir=/yb_data" | grep UUID
@@ -93,14 +93,14 @@ done
 NUM_REGIONS=${#REGION_ARRAY[@]}
 echo ""
 echo ">> Initial primary is ready! Scaling to $NUM_REGIONS regions"
-fly scale count "$NUM_REGIONS" -y --max-per-region=1 --region "$REGIONS" --vm-size performance-2x -a "$APP"
+fly scale count "$NUM_REGIONS" -y --max-per-region=1 --region "$REGIONS" --memory 8192 --vm-size performance-2x -a "$APP"
 
 echo ""
 echo "Cluster has been provisioned! Once the cluster is ready, configure your dataplacement:"
 echo ""
 echo "   fly ssh console -C \"./bin/yugabyted configure data_placement --base_dir=/yb_data --fault_tolerance=region --rf=$NUM_REGIONS\""
 echo ""
-echo "Connect to your cluster: `psql "psql://yugabyte:yugabyte@$PRIMARY_REGION.$APP.internal:15433"`
+echo "Connect to your cluster: psql "psql://yugabyte:yugabyte@$PRIMARY_REGION.$APP.internal:15433"
 echo ""
-echo "View your cluster status at http://$PRIMARY_REGION.$APP.internal:15433/?tab=tabNodes"
+echo "View your cluster status at http://$PRIMARY_REGION.$APP.internal:15433/?tab=tabNodes
 

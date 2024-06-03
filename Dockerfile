@@ -1,5 +1,5 @@
 FROM yugabytedb/yugabyte:2.21.0.1-b1-x86_64
-RUN yum update -y && yum install -y chrony
+RUN yum update -y && yum install -y chrony cronie
 
 # Replace AF_INET with AF_INET6 in the ./bin/yugabyted file until
 # this PR is merged https://github.com/yugabyte/yugabyte-db/pull/22471

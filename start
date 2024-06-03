@@ -6,6 +6,15 @@ ulimit -n 1048576
 # Set transparent_hugepage to always
 echo always > /sys/kernel/mm/transparent_hugepage/enabled
 
+# Start cron
+crond
+
+# Prune logs every 1 hour
+CRON_JOB="0 * * * * root $YB_HOME/bin/log_cleanup.sh >> /var/log/cron.log 2>&1"
+CRON_FILE="/etc/crontab"
+if ! grep -qF -- "$CRON_JOB" "$CRON_FILE"; then
+  echo "$CRON_JOB" >> "$CRON_FILE"
+fi
 # Initialize the command with common options
 
 command="./bin/yugabyted start --background=false \
@@ -15,8 +24,8 @@ command="./bin/yugabyted start --background=false \
   --ysql_enable_auth=true \
   --callhome=false \
   --cloud_location=\"fly.${FLY_REGION}.${FLY_REGION}\" \
-  --master_flags=\"raft_heartbeat_interval_ms=300,max_clock_skew_usec=300000,leader_lease_duration_ms=1000\" \
-  --tserver_flags=\"ysql_catalog_preload_additional_tables=true,raft_heartbeat_interval_ms=300,max_clock_skew_usec=300000,leader_lease_duration_ms=1000\""
+  --master_flags=\"logtostderr=true,raft_heartbeat_interval_ms=300,max_clock_skew_usec=300000,leader_lease_duration_ms=1000\" \
+  --tserver_flags=\"logtostderr=true,ysql_catalog_preload_additional_tables=true,raft_heartbeat_interval_ms=300,max_clock_skew_usec=300000,leader_lease_duration_ms=1000\""
 
 # join new member to the existing cluster
 # Note: primary is started first on initial setup, and there is nothing to join
