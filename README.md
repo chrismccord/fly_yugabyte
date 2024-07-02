@@ -22,6 +22,10 @@ After the cluster is up, you can configure the data placement, for example:
     | Fault Tolerance: Primary Cluster can survive at most any 1 region failure.           |
     +--------------------------------------------------------------------------------------+
 
+# TODO Read Replica Configuration
+
+    ./bin/yugabyted configure_read_replica new --base_dir=$YB_BASE_DIR
+
 Follow the steps in the [Fly private VPN network](https://fly.io/docs/networking/private-networking/#private-network-vpn)
 guide to securely connect from your local computer to your yuga cluster. This will allow you to hit the YugabyteDB management
 console at the .internal url, such as: `http://iad.my-yuga.internal:15433`.

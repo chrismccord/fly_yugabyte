@@ -6,6 +6,8 @@ kill_timeout = 20
 
 [env]
   YB_BASE_DIR="/yb_data"
+  PRIMARY_REGIONS="iad,bos,yul"
+  REPLICA_REGIONS="waw,lax,hkg,syd"
 
 [mount]
 source="yb_data"

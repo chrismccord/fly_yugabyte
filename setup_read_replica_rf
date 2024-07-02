@@ -1,0 +1,41 @@
+#!/bin/bash
+
+# Check if PRIMARY_REGIONS and REPLICA_REGIONS are set
+if [ -z "$PRIMARY_REGIONS" ] || [ -z "$REPLICA_REGIONS" ]; then
+  echo "Please set PRIMARY_REGIONS and REPLICA_REGIONS environment variables."
+  exit 1
+fi
+
+# Split the PRIMARY_REGIONS and REPLICA_REGIONS into arrays
+IFS=',' read -r -a primary_regions <<< "$PRIMARY_REGIONS"
+IFS=',' read -r -a replica_regions <<< "$REPLICA_REGIONS"
+
+# Generate the master addresses from primary regions
+master_addresses=""
+for region in "${primary_regions[@]}"; do
+  if [ -z "$master_addresses" ]; then
+    master_addresses="${region}.ybx.internal:7100"
+  else
+    master_addresses="${master_addresses},${region}.ybx.internal:7100"
+  fi
+done
+
+# Generate the placement info
+placement_info=""
+for region in "${replica_regions[@]}"; do
+  if [ -z "$placement_info" ]; then
+    placement_info="${region}.ybx.internal:1"
+  else
+    placement_info="${placement_info},${region}.ybx.internal:1"
+  fi
+done
+
+# Set the replication factor for primary regions
+replication_factor=${#replica_regions[@]}
+
+# Generate the yb-admin command
+yb_admin_command="yb-admin --master_addresses ${master_addresses} modify_placement_info ${placement_info} ${replication_factor}"
+
+# Output the yb-admin command
+echo "Generated yb-admin command:"
+echo "${yb_admin_command}"

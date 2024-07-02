@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# Check if REPLICA_REGIONS is set
+if [ -z "$REPLICA_REGIONS" ]; then
+  echo "Please set the REPLICA_REGIONS environment variable."
+  exit 1
+fi
+
+# Perform the dig lookup
+lookup=$(dig +short TXT vms.${FLY_APP_NAME}.internal | tr -d '"')
+
+# Parse the lookup result and filter based on REPLICA_REGIONS
+IFS=',' read -r -a replica_regions <<< "$REPLICA_REGIONS"
+
+addresses=""
+IFS=',' read -r -a lookup_array <<< "$lookup"
+for entry in "${lookup_array[@]}"; do
+  machine_id=$(echo $entry | awk '{print $1}')
+  region=$(echo $entry | awk '{print $2}')
+  for replica_region in "${replica_regions[@]}"; do
+    if [[ "$region" == "$replica_region" ]]; then
+      if [ -z "$addresses" ]; then
+        addresses="${machine_id}.vm.ybx.internal"
+      else
+        addresses="${addresses},${machine_id}.vm.ybx.internal"
+      fi
+    fi
+  done
+done
+
+# Output the addresses
+echo "$addresses"
